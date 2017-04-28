@@ -117,7 +117,13 @@ local function prepare_awsv4_request(tbl)
   local req_date = os.date("!%Y%m%dT%H%M%SZ", timestamp)
   local date = os.date("!%Y%m%d", timestamp)
 
-  local host = service .. "." .. region .. "." .. domain
+  -- Use existing `Host` header if it exists, otherwise, construct an AWS host
+  if req_headers["host"] then
+    host = req_headers["host"]
+  else
+    host = service .. "." .. region .. "." .. domain
+  end
+
   local host_header do -- If the "standard" port is not in use, the port should be added to the Host header
     local with_port
     if tls then

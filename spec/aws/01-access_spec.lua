@@ -8,8 +8,8 @@ describe("Plugin: AWS (access)", function()
 
   setup(function()
     local api1 = assert(helpers.dao.apis:insert {
-      name = "es.aws.amazon.com",
-      hosts = { "es.aws.amazon.com" },
+      name = "aws-elasticsearch",
+      hosts = { "mockbin.org" },
       upstream_url = "http://mockbin.com",
     })
 
@@ -19,8 +19,9 @@ describe("Plugin: AWS (access)", function()
       config = {
         aws_region = "us-east-1",
         aws_service = "es",
-        aws_key = "AKIAIDPNYYGMJOXN26SQ",
-        aws_secret = "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",
+        aws_key = "A6OM0YYOU01MIBT9IMGR",
+        aws_secret = "X17gy7kSjAVEraVOWgl+SeLkR3jjv9NE/O6X1mdX",
+        -- Freeze timestamp for deterministic test results (signature)
         timestamp = "1493322889",
       }
     })
@@ -46,22 +47,27 @@ describe("Plugin: AWS (access)", function()
         method = "GET",
         path = "/request/_cluster/health?level=shards&pretty",
         headers = {
-          ["Host"] = "es.aws.amazon.com",
+          ["Host"] = "mockbin.org",
         },
       })
 
       local response_body = assert.res_status(200, res)
 
+      -- Has AWS date header
       local amz_date_header_value = assert.request(res).has.header("X-Amz-Date")
       assert.equal("20170427T195449Z", amz_date_header_value)
 
-      -- Has signed headers
-      assert.request(res).has.header("Host")
+      -- Has AWS signed headers
       assert.request(res).has.header("User-Agent")
 
+      -- `Host` is preserved
+      local host_header_value = assert.request(res).has.header("Host")
+      assert.not_equal("mockbin.com", host_header_value)
+
+      -- Has AWS authorization header
       local authorization_header_value = assert.request(res).has.header("Authorization")
       assert.equal(
-        "AWS4-HMAC-SHA256 Credential=AKIAIDPNYYGMJOXN26SQ/20170427/us-east-1/es/aws4_request, SignedHeaders=host;user-agent;x-amz-date, Signature=0eb414f9a430bb950aeb445cdc9ab4daebb39ba5e2e70755787bef09a8667d35",
+        "AWS4-HMAC-SHA256 Credential=A6OM0YYOU01MIBT9IMGR/20170427/us-east-1/es/aws4_request, SignedHeaders=host;user-agent;x-amz-date, Signature=4d8a04280c8bd7c68ddb9d6acd227b1c0068e5e6f8eabb6492cfaf4729de32c2",
         authorization_header_value
       )
     end)
@@ -79,27 +85,33 @@ describe("Plugin: AWS (access)", function()
         method = "POST",
         path = "/request/_search",
         headers = {
-          ["Host"] = "es.aws.amazon.com",
+          ["Host"] = "mockbin.org",
         },
         body = json_body,
       })
 
       local response_body = assert.res_status(200, res)
 
+      -- Has AWS date header
       local amz_date_header_value = assert.request(res).has.header("X-Amz-Date")
       assert.equal("20170427T195449Z", amz_date_header_value)
 
+      -- Has AWS signed headers
+      assert.request(res).has.header("Content-Length")
+      assert.request(res).has.header("User-Agent")
+
+      -- `Host` is preserved
+      local host_header_value = assert.request(res).has.header("Host")
+      assert.not_equal("mockbin.com", host_header_value)
+
+      -- Has AWS authorization
       local authorization_header_value = assert.request(res).has.header("Authorization")
       assert.equal(
-        "AWS4-HMAC-SHA256 Credential=AKIAIDPNYYGMJOXN26SQ/20170427/us-east-1/es/aws4_request, SignedHeaders=content-length;host;user-agent;x-amz-date, Signature=629614313d1746fa36493f7f8381f2a8232ba269f4d93767214b9720c889eeef",
+        "AWS4-HMAC-SHA256 Credential=A6OM0YYOU01MIBT9IMGR/20170427/us-east-1/es/aws4_request, SignedHeaders=content-length;host;user-agent;x-amz-date, Signature=57f96a31b1521abf5a95998f4502f7d31aa450e222ecb98f9142a6c2a363a5ad",
         authorization_header_value
       )
 
-      -- Has signed headers
-      assert.request(res).has.header("Content-Length")
-      assert.request(res).has.header("Host")
-      assert.request(res).has.header("User-Agent")
-
+      -- Original body is sent in request
       local req_body = assert.request(res).has.jsonbody()
       assert.equal(json_body, cjson.encode(req_body))
     end)
