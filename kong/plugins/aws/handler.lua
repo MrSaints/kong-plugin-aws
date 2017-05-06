@@ -1,7 +1,6 @@
 local plugin = require("kong.plugins.base_plugin"):extend()
 local responses = require "kong.tools.responses"
 
-package.path = package.path .. ";../?.lua"
 local aws_v4 = require "kong.plugins.aws.v4"
 
 function plugin:new()
@@ -14,8 +13,15 @@ function plugin:access(plugin_conf)
   ngx.req.read_body()
 
   local headers = ngx.req.get_headers()
-  headers['host'] = ngx.var.host
-  headers['connection'] = nil
+
+  -- Sign the request using the `Host` without
+  -- a port, as this is what Kong uses.
+  headers["host"] = ngx.var.host
+
+  -- The `Connection` between Client->Kong->Server
+  -- may differ. Do not include it in the signing
+  -- request, otherwise it will lead to inconsistencies.
+  headers["connection"] = nil
 
   local opts = {
     region = plugin_conf.aws_region,
@@ -40,7 +46,8 @@ function plugin:access(plugin_conf)
     ngx.req.set_header(key, val)
   end
 
-  -- Use the same `Host` as the one used for signing the request
+  -- Use the same `Host` as the one used
+  -- for signing the request.
   ngx.var.upstream_host = request.host
 end
 
