@@ -1,5 +1,7 @@
 # kong-plugin-aws
 
+[![](https://images.microbadger.com/badges/image/mrsaints/kong-aws.svg)](https://microbadger.com/images/mrsaints/kong-aws "Get your own image badge on microbadger.com")
+
 _A work in progress. Use at your own risk._
 
 A [Kong][kong] plugin for signing incoming requests with Amazon Web Services (AWS) [authentication headers v4][aws-signature].
