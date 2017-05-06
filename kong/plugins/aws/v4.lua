@@ -1,4 +1,4 @@
--- Taken from https://github.com/Mashape/kong/blob/master/kong/plugins/aws-lambda/v4.lua
+-- Taken, and modified from https://github.com/Mashape/kong/blob/master/kong/plugins/aws-lambda/v4.lua
 -- Performs AWSv4 Signing
 -- http://docs.aws.amazon.com/general/latest/gr/sigv4_signing.html
 
@@ -110,7 +110,7 @@ local function prepare_awsv4_request(tbl)
       return nil, "either 'signing_key' or 'secret_key' must be provided"
     end
   end
-  local timestamp = tbl.timestamp or os.time()
+  local timestamp = tbl.timestamp or ngx.time()
   local tls = tbl.tls
   if tls == nil then tls = true end
   local port = tbl.port or (tls and 443 or 80)
