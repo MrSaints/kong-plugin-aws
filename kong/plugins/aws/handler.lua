@@ -12,16 +12,18 @@ function plugin:access(plugin_conf)
 
   ngx.req.read_body()
 
-  local headers = ngx.req.get_headers()
+  local incoming_headers = ngx.req.get_headers()
+  local headers = {}
 
   -- Sign the request using the `Host` without
   -- a port, as this is what Kong uses.
   headers["host"] = ngx.var.host
 
-  -- The `Connection` between Client->Kong->Server
-  -- may differ. Do not include it in the signing
-  -- request, otherwise it will lead to inconsistencies.
-  headers["connection"] = nil
+  -- Proxy the content headers only as they are AWS requirements.
+  -- They are also likely the only headers to remain consistent
+  -- between Client -> Kong -> AWS.
+  headers["content-length"] = incoming_headers["content-length"]
+  headers["content-type"] = incoming_headers["content-type"]
 
   local opts = {
     region = plugin_conf.aws_region,

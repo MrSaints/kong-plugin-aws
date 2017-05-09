@@ -48,6 +48,8 @@ describe("Plugin: AWS (access)", function()
         path = "/request/_cluster/health?level=shards&pretty",
         headers = {
           ["Host"] = "mockbin.org",
+          ["Content-Type"] = "text/html; charset=utf-8",
+          ["Ignored"] = "this should not be signed",
         },
       })
 
@@ -58,7 +60,7 @@ describe("Plugin: AWS (access)", function()
       assert.equal("20170427T195449Z", amz_date_header_value)
 
       -- Has AWS signed headers
-      assert.request(res).has.header("User-Agent")
+      assert.request(res).has.header("Content-Type")
 
       -- `Host` is preserved
       local host_header_value = assert.request(res).has.header("Host")
@@ -67,7 +69,7 @@ describe("Plugin: AWS (access)", function()
       -- Has AWS authorization header
       local authorization_header_value = assert.request(res).has.header("Authorization")
       assert.equal(
-        "AWS4-HMAC-SHA256 Credential=A6OM0YYOU01MIBT9IMGR/20170427/us-east-1/es/aws4_request, SignedHeaders=host;user-agent;x-amz-date, Signature=4d8a04280c8bd7c68ddb9d6acd227b1c0068e5e6f8eabb6492cfaf4729de32c2",
+        "AWS4-HMAC-SHA256 Credential=A6OM0YYOU01MIBT9IMGR/20170427/us-east-1/es/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=34b72395a1f1e1b000b01e97ee96280381fc682833225795f7cfcb79726d40bc",
         authorization_header_value
       )
     end)
@@ -86,6 +88,8 @@ describe("Plugin: AWS (access)", function()
         path = "/request/_search",
         headers = {
           ["Host"] = "mockbin.org",
+          ["Content-Type"] = "application/json",
+          ["Ignored"] = "this should not be signed",
         },
         body = json_body,
       })
@@ -98,7 +102,7 @@ describe("Plugin: AWS (access)", function()
 
       -- Has AWS signed headers
       assert.request(res).has.header("Content-Length")
-      assert.request(res).has.header("User-Agent")
+      assert.request(res).has.header("Content-Type")
 
       -- `Host` is preserved
       local host_header_value = assert.request(res).has.header("Host")
@@ -107,7 +111,7 @@ describe("Plugin: AWS (access)", function()
       -- Has AWS authorization
       local authorization_header_value = assert.request(res).has.header("Authorization")
       assert.equal(
-        "AWS4-HMAC-SHA256 Credential=A6OM0YYOU01MIBT9IMGR/20170427/us-east-1/es/aws4_request, SignedHeaders=content-length;host;user-agent;x-amz-date, Signature=57f96a31b1521abf5a95998f4502f7d31aa450e222ecb98f9142a6c2a363a5ad",
+        "AWS4-HMAC-SHA256 Credential=A6OM0YYOU01MIBT9IMGR/20170427/us-east-1/es/aws4_request, SignedHeaders=content-length;content-type;host;x-amz-date, Signature=ba457c73822620f9653cdf11e45c9de4bcd32d2fe63eee719f46a51c72ed0a18",
         authorization_header_value
       )
 
