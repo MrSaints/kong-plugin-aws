@@ -33,6 +33,8 @@ Field | Type | Description
 `aws_secret` | `string` | The AWS secret credential to be used when signing a request.
 `timestamp` | `timestamp` | (Optional) This is used for signing a request with the current datetime. It is mostly used for testing, so leave this alone unless you know what you are doing.
 
+If your `aws_key` or `aws_secret` contains special characters, ensure that they are URL percent encoded (e.g. `+` -> `%2B`).
+
 
 [kong]: https://getkong.org/
 [aws-signature]: http://docs.aws.amazon.com/general/latest/gr/signing_aws_api_requests.html
