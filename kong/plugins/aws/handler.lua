@@ -53,6 +53,6 @@ function plugin:access(plugin_conf)
   ngx.var.upstream_host = request.host
 end
 
-plugin.PRIORITY = 1000
+plugin.PRIORITY = 750
 
 return plugin
